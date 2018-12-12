@@ -1,27 +1,23 @@
 
 class Vector {
 
-    constructor (x, y, z) {
+    constructor (x = 0, y = 0) {
         this.x = x;
         this.y = y;
-        this.z = z;
     }
 
     /**
      * @param {Vector|Number} x
      * @param {Number} [y]
-     * @param {Number} [z]
      * @returns {Vector}
      */
-    set(x, y, z) {
+    set(x, y) {
         if (x instanceof Vector) {
             this.x = x.x;
             this.y = x.y;
-            this.z = x.z;
         } else {
             this.x = x;
             this.y = y;
-            this.z = z;
         }
         return this;
     }
@@ -29,14 +25,12 @@ class Vector {
     clear() {
         this.x = 0;
         this.y = 0;
-        this.z = 0;
         return this;
     }
 
     setSphericalCoordinates(phi, theta) {
         this.x = Math.cos(phi) * Math.sin(theta);
         this.y = Math.sin(theta) * Math.sin(phi);
-        this.z = Math.cos(theta);
         return this;
     }
 
@@ -53,7 +47,7 @@ class Vector {
     }
 
     get length() {
-        return Math.sqrt(this.x ** 2 + this.y ** 2 + this.z ** 2);
+        return Math.sqrt(this.x ** 2 + this.y ** 2);
     }
 
     normalize() {
@@ -61,7 +55,6 @@ class Vector {
         if (len !== 0) {
             this.x /= len;
             this.y /= len;
-            this.z /= len;
         }
         return this;
     }
@@ -87,7 +80,6 @@ class Vector {
     static scale(v1, scalar, result) {
         result.x = v1.x * scalar;
         result.y = v1.y * scalar;
-        result.z = v1.z * scalar;
         return result;
     }
 
@@ -100,7 +92,6 @@ class Vector {
     static add(v1, v2, result) {
         result.x = v1.x + v2.x;
         result.y = v1.y + v2.y;
-        result.z = v1.z + v2.z;
         return result;
     }
 
@@ -113,7 +104,6 @@ class Vector {
     static subtract(v1, v2, result) {
         result.x = v1.x - v2.x;
         result.y = v1.y - v2.y;
-        result.z = v1.z - v2.z;
         return result;
     }
 }
