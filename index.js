@@ -9,6 +9,7 @@ const COLORS = [
 const QUADRANT_SIZE = 50;
 const MAX_ACCELERATION = 10;
 const MAX_VELOCITY = 10;
+const REPULSIVE_FORCE = 20;
 
 class Ball {
     constructor (x, y, kind) {
@@ -94,7 +95,8 @@ class App {
                         if (neighbor === ball) continue;  // self
 
                         Vector.subtract(ball.pos, neighbor.pos, this.aux);
-                        this.aux.normalize();
+                        const magnitude = Math.max(1, this.aux.length);
+                        this.aux.normalize().scale(REPULSIVE_FORCE / (magnitude ** 2));
                         ball.acc.add(this.aux);
                     }
                 }
@@ -150,6 +152,8 @@ class App {
             c.arc(ball.pos.x, ball.pos.y, BALL_RADIUS, 0, TAU);
             c.fill();
         }
+
+        requestAnimationFrame(this.updateFn);
     }
 }
 
