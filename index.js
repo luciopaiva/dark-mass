@@ -1,6 +1,6 @@
 
 const TAU = Math.PI * 2;
-const BALLS_COUNT = 100;
+const BALLS_COUNT = 200;
 const BALL_RADIUS = 5;
 const COLORS = [
     "#d69600",
@@ -85,7 +85,7 @@ class App {
             // for each ball in that quadrant
             for (const ball of this.quadrants[qi]) {
                 ball.acc.clear();
-                // for each neighbor quadrant
+                // for each neighbor quadrant, calculate resulting repulsion
                 for (const qi of quadrantIndexes) {
                     if (qi < 0 || qi >= this.quadrants.length) {
                         continue;  // invalid quadrant index
@@ -94,12 +94,22 @@ class App {
                     for (const neighbor of this.quadrants[qi]) {
                         if (neighbor === ball) continue;  // self
 
-                        Vector.subtract(ball.pos, neighbor.pos, this.aux);
-                        const magnitude = Math.max(1, this.aux.length);
-                        this.aux.normalize().scale(REPULSIVE_FORCE / (magnitude ** 2));
-                        ball.acc.add(this.aux);
+                        this.accumulateForce(ball, neighbor.pos, REPULSIVE_FORCE);
                     }
                 }
+
+                // repulsion coming from top border
+                this.aux.set(ball.pos.x, 0);
+                this.accumulateForce(ball, this.aux, REPULSIVE_FORCE * 2);
+                // repulsion coming from right border
+                this.aux.set(this.width, ball.pos.y);
+                this.accumulateForce(ball, this.aux, REPULSIVE_FORCE * 2);
+                // repulsion coming from bottom border
+                this.aux.set(ball.pos.x, this.height);
+                this.accumulateForce(ball, this.aux, REPULSIVE_FORCE * 2);
+                // repulsion coming from left border
+                this.aux.set(0, ball.pos.y);
+                this.accumulateForce(ball, this.aux, REPULSIVE_FORCE * 2);
 
                 const accMagnitude = ball.acc.length;
                 if (accMagnitude > MAX_ACCELERATION) {
@@ -154,6 +164,13 @@ class App {
         }
 
         requestAnimationFrame(this.updateFn);
+    }
+
+    accumulateForce(ball, neighborPos, repulsiveForce) {
+        Vector.subtract(ball.pos, neighborPos, this.aux);
+        const magnitude = Math.max(1, this.aux.length);
+        this.aux.normalize().scale(repulsiveForce / (magnitude ** 2));
+        ball.acc.add(this.aux);
     }
 }
 
