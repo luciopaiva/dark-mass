@@ -93,6 +93,9 @@ class App {
             case "a":
                 this.waveMode = !this.waveMode;
                 break;
+            case "k":
+                this.killVelocities();
+                break;
         }
     }
 
@@ -113,6 +116,12 @@ class App {
 
     selectRandomBall() {
         this.selectedBall = this.balls[Math.floor(Math.random() * this.balls.length)];
+    }
+
+    killVelocities() {
+        for (const ball of this.balls) {
+            ball.vel.set(0, 0);
+        }
     }
 
     update(t) {
