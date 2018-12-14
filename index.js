@@ -17,7 +17,6 @@ const MAX_VELOCITY = 10;
 const BALL_REPULSION_CONSTANT = 10;
 const CURSOR_REPULSION_CONSTANT = 100;
 const FRICTION_FACTOR = .955;  // a value between 0 (max friction) and 1 (no friction)
-const SHOULD_WALLS_REPEL = true;
 
 class Ball {
     constructor (x, y, kind) {
@@ -51,6 +50,7 @@ class App {
         this.aux = new Vector();
 
         this.shouldDrawQuadrants = false;
+        this.shouldWallsRepel = true;
         this.gravityMode = false;
 
         this.cursor = new Vector();
@@ -81,6 +81,9 @@ class App {
                 break;
             case "q":
                 this.shouldDrawQuadrants = !this.shouldDrawQuadrants;
+                break;
+            case "w":
+                this.shouldWallsRepel = !this.shouldWallsRepel;
                 break;
         }
     }
@@ -144,7 +147,7 @@ class App {
                     }
                 }
 
-                if (SHOULD_WALLS_REPEL) {
+                if (this.shouldWallsRepel) {
                     // repulsion coming from top border
                     this.aux.set(ball.pos.x, 0);
                     this.accumulateForce(ball, this.aux, BALL_REPULSION_CONSTANT);
