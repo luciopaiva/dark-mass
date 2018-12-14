@@ -201,8 +201,13 @@ class App {
             if (this.isCursorActive) {
                 // do not let balls stay within cursor radius
                 if (this.aux.set(ball.pos).subtract(this.cursor).length < CURSOR_RADIUS) {
-                    this.aux.normalize().scale(CURSOR_RADIUS + ball.radius).add(this.cursor);
-                    ball.pos.set(this.aux);
+                    // escape vector
+                    this.aux.normalize();
+                    // force position somewhere in the perimeter
+                    ball.pos.set(this.aux).scale(CURSOR_RADIUS + ball.radius).add(this.cursor);
+                    // keep speed, but change direction to point outwards
+                    const velMag = ball.vel.length;
+                    ball.vel.set(this.aux).scale(velMag);
                 }
             }
 
