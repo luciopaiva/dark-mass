@@ -127,9 +127,9 @@ class App {
         for (const ball of this.balls) {
             ball.pos.add(ball.vel);
 
-            if (ball.pos.x < 0) ball.pos.x = 0;
+            if (ball.pos.x <= 0) ball.pos.x = 1;
             if (ball.pos.x >= this.width) ball.pos.x = this.width - 1;
-            if (ball.pos.y < 0) ball.pos.y = 0;
+            if (ball.pos.y <= 0) ball.pos.y = 1;
             if (ball.pos.y >= this.height) ball.pos.y = this.height - 1;
 
             const currentQuadrantIndex = this.getQuadrantIndexByCoordinate(ball.pos.x, ball.pos.y);
