@@ -14,6 +14,7 @@ const BALL_REPULSION_CONSTANT = 10;
 const CURSOR_REPULSION_CONSTANT = 100;
 const CONVERGENCE_FACTOR = 0.98;
 const SHOULD_DRAW_QUADRANTS = false;
+const SHOULD_WALLS_REPEL = true;
 
 class Ball {
     constructor (x, y, kind) {
@@ -108,18 +109,20 @@ class App {
                     }
                 }
 
-                // repulsion coming from top border
-                this.aux.set(ball.pos.x, 0);
-                this.accumulateForce(ball, this.aux, BALL_REPULSION_CONSTANT);
-                // repulsion coming from right border
-                this.aux.set(this.width, ball.pos.y);
-                this.accumulateForce(ball, this.aux, BALL_REPULSION_CONSTANT);
-                // repulsion coming from bottom border
-                this.aux.set(ball.pos.x, this.height);
-                this.accumulateForce(ball, this.aux, BALL_REPULSION_CONSTANT);
-                // repulsion coming from left border
-                this.aux.set(0, ball.pos.y);
-                this.accumulateForce(ball, this.aux, BALL_REPULSION_CONSTANT);
+                if (SHOULD_WALLS_REPEL) {
+                    // repulsion coming from top border
+                    this.aux.set(ball.pos.x, 0);
+                    this.accumulateForce(ball, this.aux, BALL_REPULSION_CONSTANT);
+                    // repulsion coming from right border
+                    this.aux.set(this.width, ball.pos.y);
+                    this.accumulateForce(ball, this.aux, BALL_REPULSION_CONSTANT);
+                    // repulsion coming from bottom border
+                    this.aux.set(ball.pos.x, this.height);
+                    this.accumulateForce(ball, this.aux, BALL_REPULSION_CONSTANT);
+                    // repulsion coming from left border
+                    this.aux.set(0, ball.pos.y);
+                    this.accumulateForce(ball, this.aux, BALL_REPULSION_CONSTANT);
+                }
 
                 // repulsion coming from cursor
                 if (this.isCursorActive) {
@@ -151,6 +154,14 @@ class App {
         // update balls position and quadrant *after all interactions have been calculated*
         for (const ball of this.balls) {
             ball.pos.add(ball.vel);
+
+            if (this.isCursorActive) {
+                // do not let balls stay within cursor radius
+                if (this.aux.set(ball.pos).subtract(this.cursor).length < CURSOR_RADIUS) {
+                    this.aux.normalize().scale(CURSOR_RADIUS + BALL_RADIUS).add(this.cursor);
+                    ball.pos.set(this.aux);
+                }
+            }
 
             if (ball.pos.x <= 0) ball.pos.x = 1;
             if (ball.pos.x >= this.width) ball.pos.x = this.width - 1;
