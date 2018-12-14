@@ -1,6 +1,6 @@
 
 const TAU = Math.PI * 2;
-const BALLS_COUNT = 2000;
+const BALLS_COUNT = 1200;
 const COLOR_BY_KIND = [
     "#986ade",
     "#490097",
@@ -170,7 +170,9 @@ class App {
                     for (const neighbor of this.quadrants[qi]) {
                         if (neighbor === ball) continue;  // self
                         if (this.aux.set(ball.pos).subtract(neighbor.pos).length < RADIUS_OF_INFLUENCE) {
-                            this.accumulateForce(ball, neighbor.pos, BALL_REPULSION_CONSTANT * neighbor.mass);
+                            const minDistance = ball.radius + neighbor.radius;
+                            const force = BALL_REPULSION_CONSTANT * neighbor.mass;
+                            this.accumulateForce(ball, neighbor.pos, force, minDistance);
 
                             if (ball === this.selectedBall) {
                                 neighbor.isSelectedNeighbor = true;
@@ -315,9 +317,9 @@ class App {
         requestAnimationFrame(this.updateFn);
     }
 
-    accumulateForce(ball, neighborPos, repulsiveForceConstant) {
+    accumulateForce(ball, neighborPos, repulsiveForceConstant, minMagnitude = 1) {
         Vector.subtract(ball.pos, neighborPos, this.aux);
-        const magnitude = Math.max(1, this.aux.length);
+        const magnitude = Math.max(minMagnitude, this.aux.length);
         this.aux.normalize().scale(repulsiveForceConstant / (magnitude ** 2));
         ball.acc.add(this.aux);
     }
