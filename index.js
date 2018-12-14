@@ -2,6 +2,7 @@
 const TAU = Math.PI * 2;
 const BALLS_COUNT = 1000;
 const BALL_RADIUS = 5;
+const CURSOR_RADIUS = 50;
 const COLORS = [
     "#d69600",
     "#c90093",
@@ -9,7 +10,8 @@ const COLORS = [
 const QUADRANT_SIZE = 50;
 const MAX_ACCELERATION = 0;
 const MAX_VELOCITY = 1;
-const REPULSIVE_FORCE_CONSTANT = 10;
+const BALL_REPULSION_CONSTANT = 10;
+const CURSOR_REPULSION_CONSTANT = 100;
 const CONVERGENCE_FACTOR = 0.98;
 const SHOULD_DRAW_QUADRANTS = false;
 
@@ -41,22 +43,28 @@ class App {
         this.quadrants = Array.from(Array(this.QUADRANT_COLS * this.QUADRANT_ROWS), () => new Set());
         this.aux = new Vector();
 
-        // this.colWidth = this.width / QUADRANT_COLS;
-        // this.rowHeight = this.height / QUADRANT_ROWS;
+        this.cursor = new Vector();
+        this.isCursorActive = false;
 
         for (const ball of this.balls) {
             ball.quadrantIndex = this.getQuadrantIndexByCoordinate(ball.pos.x, ball.pos.y);
             this.quadrants[ball.quadrantIndex].add(ball);
         }
 
-        // this.canvas.addEventListener("mousemove", this.onMouseMove.bind(this));
+        this.canvas.addEventListener("mousemove", this.onMouseMove.bind(this));
+        this.canvas.addEventListener("mouseout", this.onMouseOut.bind(this));
 
         this.updateFn = this.update.bind(this);
         requestAnimationFrame(this.updateFn);
     }
 
     onMouseMove(event) {
-        console.info(this.getQuadrantIndexByCoordinate(event.offsetX, event.offsetY));
+        this.cursor.set(event.offsetX, event.offsetY);
+        this.isCursorActive = true;
+    }
+
+    onMouseOut(event) {
+        this.isCursorActive = false;
     }
 
     getQuadrantIndexByCoordinate(x, y) {
@@ -96,22 +104,27 @@ class App {
                     for (const neighbor of this.quadrants[qi]) {
                         if (neighbor === ball) continue;  // self
 
-                        this.accumulateForce(ball, neighbor.pos, REPULSIVE_FORCE_CONSTANT);
+                        this.accumulateForce(ball, neighbor.pos, BALL_REPULSION_CONSTANT);
                     }
                 }
 
                 // repulsion coming from top border
                 this.aux.set(ball.pos.x, 0);
-                this.accumulateForce(ball, this.aux, REPULSIVE_FORCE_CONSTANT);
+                this.accumulateForce(ball, this.aux, BALL_REPULSION_CONSTANT);
                 // repulsion coming from right border
                 this.aux.set(this.width, ball.pos.y);
-                this.accumulateForce(ball, this.aux, REPULSIVE_FORCE_CONSTANT);
+                this.accumulateForce(ball, this.aux, BALL_REPULSION_CONSTANT);
                 // repulsion coming from bottom border
                 this.aux.set(ball.pos.x, this.height);
-                this.accumulateForce(ball, this.aux, REPULSIVE_FORCE_CONSTANT);
+                this.accumulateForce(ball, this.aux, BALL_REPULSION_CONSTANT);
                 // repulsion coming from left border
                 this.aux.set(0, ball.pos.y);
-                this.accumulateForce(ball, this.aux, REPULSIVE_FORCE_CONSTANT);
+                this.accumulateForce(ball, this.aux, BALL_REPULSION_CONSTANT);
+
+                // repulsion coming from cursor
+                if (this.isCursorActive) {
+                    this.accumulateForce(ball, this.cursor, CURSOR_REPULSION_CONSTANT);
+                }
 
                 if (MAX_ACCELERATION) {
                     const accMagnitude = ball.acc.length;
@@ -174,6 +187,13 @@ class App {
             c.fillStyle = COLORS[ball.kind];
             c.beginPath();
             c.arc(ball.pos.x, ball.pos.y, BALL_RADIUS, 0, TAU);
+            c.fill();
+        }
+
+        if (this.isCursorActive) {
+            c.fillStyle = "#8f5fff";
+            c.beginPath();
+            c.arc(this.cursor.x, this.cursor.y, CURSOR_RADIUS, 0, TAU);
             c.fill();
         }
 
