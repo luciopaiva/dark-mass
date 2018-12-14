@@ -7,14 +7,16 @@ const COLOR_BY_KIND = [
 ];
 const BALL_RADIUS_BY_KIND = [5, 6];
 const MASS_BY_KIND = [1, 4];
+const SELECTED_COLOR = "#ffd800";
+const SELECTED_NEIGHBOR_COLOR = "#ff5d00";
 const CURSOR_RADIUS = 50;
-const QUADRANT_SIZE = 100;
+const QUADRANT_SIZE = 50;
 const RADIUS_OF_INFLUENCE = 50;
 const MAX_ACCELERATION = 0;
 const MAX_VELOCITY = 1;
 const BALL_REPULSION_CONSTANT = 10;
 const CURSOR_REPULSION_CONSTANT = 100;
-const FRICTION_FACTOR = .98;  // a value between 0 (max friction) and 1 (no friction)
+const FRICTION_FACTOR = 1;  // a value between 0 (max friction) and 1 (no friction)
 const SHOULD_DRAW_QUADRANTS = true;
 const SHOULD_WALLS_REPEL = true;
 const SHOULD_SIMULATE_GRAVITY = false;
@@ -28,6 +30,7 @@ class Ball {
         this.quadrantIndex = -1;
         this.vel = new Vector();
         this.acc = new Vector();
+        this.isSelectedNeighbor = false;
     }
 }
 
@@ -52,6 +55,8 @@ class App {
         this.cursor = new Vector();
         this.isCursorActive = false;
 
+        this.selectedBall = null;
+
         for (const ball of this.balls) {
             ball.quadrantIndex = this.getQuadrantIndexByCoordinate(ball.pos.x, ball.pos.y);
             this.quadrants[ball.quadrantIndex].add(ball);
@@ -59,9 +64,18 @@ class App {
 
         this.canvas.addEventListener("mousemove", this.onMouseMove.bind(this));
         this.canvas.addEventListener("mouseout", this.onMouseOut.bind(this));
+        window.addEventListener("keypress", this.onKeypress.bind(this));
 
         this.updateFn = this.update.bind(this);
         requestAnimationFrame(this.updateFn);
+    }
+
+    onKeypress(event) {
+        switch (event.key) {
+            case "r":
+                this.selectRandomBall();
+                break;
+        }
     }
 
     onMouseMove(event) {
@@ -77,6 +91,10 @@ class App {
         const col = Math.floor(x / QUADRANT_SIZE);
         const row = Math.floor(y / QUADRANT_SIZE);
         return row * this.QUADRANT_COLS + col;
+    }
+
+    selectRandomBall() {
+        this.selectedBall = this.balls[Math.floor(Math.random() * this.balls.length)];
     }
 
     update(t) {
@@ -111,6 +129,10 @@ class App {
                         if (neighbor === ball) continue;  // self
                         if (this.aux.set(ball.pos).subtract(neighbor.pos).length < RADIUS_OF_INFLUENCE) {
                             this.accumulateForce(ball, neighbor.pos, BALL_REPULSION_CONSTANT * neighbor.mass);
+
+                            if (ball === this.selectedBall) {
+                                neighbor.isSelectedNeighbor = true;
+                            }
                         }
                     }
                 }
@@ -209,10 +231,14 @@ class App {
 
         // draw balls
         for (const ball of this.balls) {
-            c.fillStyle = COLOR_BY_KIND[ball.kind];
+            c.fillStyle = (ball === this.selectedBall ?
+                SELECTED_COLOR : (ball.isSelectedNeighbor ? SELECTED_NEIGHBOR_COLOR : COLOR_BY_KIND[ball.kind]));
             c.beginPath();
             c.arc(ball.pos.x, ball.pos.y, ball.radius, 0, TAU);
             c.fill();
+
+            // reset flags
+            ball.isSelectedNeighbor = false;
         }
 
         if (this.isCursorActive) {
