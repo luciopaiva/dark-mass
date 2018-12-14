@@ -90,11 +90,11 @@ class App {
                 qi,                           // self
                 qi - this.QUADRANT_COLS,      // N
                 qi - this.QUADRANT_COLS + 1,  // NE
-                1,                            // E
+                qi + 1,                       // E
                 qi + this.QUADRANT_COLS + 1,  // SE
                 qi + this.QUADRANT_COLS,      // S
                 qi + this.QUADRANT_COLS - 1,  // SW
-                -1,                           // W
+                qi - 1,                       // W
                 qi - this.QUADRANT_COLS - 1,  // NW
             ];
 
