@@ -2,20 +2,22 @@
 const TAU = Math.PI * 2;
 const BALLS_COUNT = 1000;
 const COLOR_BY_KIND = [
-    "#d68f00",
-    "#6000c9",
+    "#986ade",
+    "#490097",
 ];
 const BALL_RADIUS_BY_KIND = [5, 6];
-const MASS_BY_KIND = [1, 20];
+const MASS_BY_KIND = [1, 4];
 const CURSOR_RADIUS = 50;
-const QUADRANT_SIZE = 50;
+const QUADRANT_SIZE = 100;
+const RADIUS_OF_INFLUENCE = 50;
 const MAX_ACCELERATION = 0;
 const MAX_VELOCITY = 1;
 const BALL_REPULSION_CONSTANT = 10;
 const CURSOR_REPULSION_CONSTANT = 100;
-const CONVERGENCE_FACTOR = 0.98;
-const SHOULD_DRAW_QUADRANTS = false;
+const FRICTION_FACTOR = .98;  // a value between 0 (max friction) and 1 (no friction)
+const SHOULD_DRAW_QUADRANTS = true;
 const SHOULD_WALLS_REPEL = true;
+const SHOULD_SIMULATE_GRAVITY = false;
 
 class Ball {
     constructor (x, y, kind) {
@@ -33,7 +35,7 @@ class App {
 
     constructor () {
         this.canvas = document.createElement("canvas");
-        this.width = this.canvas.width = 1050;
+        this.width = this.canvas.width = 1000;
         this.height = this.canvas.height = 800;
         this.ctx = this.canvas.getContext("2d");
         document.body.appendChild(this.canvas);
@@ -107,8 +109,9 @@ class App {
                     // for each ball in that neighbor quadrant
                     for (const neighbor of this.quadrants[qi]) {
                         if (neighbor === ball) continue;  // self
-
-                        this.accumulateForce(ball, neighbor.pos, BALL_REPULSION_CONSTANT * neighbor.mass);
+                        if (this.aux.set(ball.pos).subtract(neighbor.pos).length < RADIUS_OF_INFLUENCE) {
+                            this.accumulateForce(ball, neighbor.pos, BALL_REPULSION_CONSTANT * neighbor.mass);
+                        }
                     }
                 }
 
@@ -132,6 +135,12 @@ class App {
                     this.accumulateForce(ball, this.cursor, CURSOR_REPULSION_CONSTANT);
                 }
 
+                // gravity
+                if (SHOULD_SIMULATE_GRAVITY) {
+                    this.aux.set(0, ball.mass * .1);
+                    ball.acc.add(this.aux);
+                }
+
                 if (MAX_ACCELERATION) {
                     const accMagnitude = ball.acc.length;
                     if (accMagnitude > MAX_ACCELERATION) {
@@ -141,15 +150,17 @@ class App {
 
                 ball.vel.add(ball.acc);
 
-                if (CONVERGENCE_FACTOR) {
+                if (FRICTION_FACTOR) {
                     // simply steal energy from the velocity vector at each step
-                    ball.vel.scale(CONVERGENCE_FACTOR);
+                    ball.vel.scale(FRICTION_FACTOR);
                 }
 
-                // impose maximum velocity so system does not go unstable
-                const velMagnitude = ball.vel.length;
-                if (velMagnitude > MAX_VELOCITY) {
-                    ball.vel.normalize().scale(MAX_VELOCITY);  // cap velocity
+                if (MAX_VELOCITY) {
+                    // impose maximum velocity so system does not go unstable
+                    const velMagnitude = ball.vel.length;
+                    if (velMagnitude > MAX_VELOCITY) {
+                        ball.vel.normalize().scale(MAX_VELOCITY);  // cap velocity
+                    }
                 }
             }
         }
