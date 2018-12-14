@@ -17,7 +17,6 @@ const MAX_VELOCITY = 10;
 const BALL_REPULSION_CONSTANT = 10;
 const CURSOR_REPULSION_CONSTANT = 100;
 const FRICTION_FACTOR = .955;  // a value between 0 (max friction) and 1 (no friction)
-const SHOULD_DRAW_QUADRANTS = false;
 const SHOULD_WALLS_REPEL = true;
 
 class Ball {
@@ -51,6 +50,7 @@ class App {
         this.quadrants = Array.from(Array(this.QUADRANT_COLS * this.QUADRANT_ROWS), () => new Set());
         this.aux = new Vector();
 
+        this.shouldDrawQuadrants = false;
         this.gravityMode = false;
 
         this.cursor = new Vector();
@@ -78,6 +78,9 @@ class App {
                 break;
             case "g":
                 this.gravityMode = !this.gravityMode;
+                break;
+            case "q":
+                this.shouldDrawQuadrants = !this.shouldDrawQuadrants;
                 break;
         }
     }
@@ -217,7 +220,7 @@ class App {
         }
 
         // draw quadrants
-        if (SHOULD_DRAW_QUADRANTS) {
+        if (this.shouldDrawQuadrants) {
             c.strokeStyle = "#666";
             for (let y = 0; y < this.height; y += QUADRANT_SIZE) {
                 c.beginPath();
@@ -240,6 +243,13 @@ class App {
             c.beginPath();
             c.arc(ball.pos.x, ball.pos.y, ball.radius, 0, TAU);
             c.fill();
+
+            if (ball === this.selectedBall) {
+                c.strokeStyle = SELECTED_COLOR;
+                c.beginPath();
+                c.arc(ball.pos.x, ball.pos.y, RADIUS_OF_INFLUENCE, 0, TAU);
+                c.stroke();
+            }
 
             // reset flags
             ball.isSelectedNeighbor = false;
