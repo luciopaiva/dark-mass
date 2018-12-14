@@ -6,7 +6,7 @@ const COLORS = [
     "#d69600",
     "#c90093",
 ];
-const QUADRANT_SIZE = 100;
+const QUADRANT_SIZE = 50;
 const MAX_ACCELERATION = 0;
 const MAX_VELOCITY = 1;
 const REPULSIVE_FORCE_CONSTANT = 10;
@@ -27,8 +27,8 @@ class App {
 
     constructor () {
         this.canvas = document.createElement("canvas");
-        this.width = this.canvas.width = 800;
-        this.height = this.canvas.height = 600;
+        this.width = this.canvas.width = 1050;
+        this.height = this.canvas.height = 800;
         this.ctx = this.canvas.getContext("2d");
         document.body.appendChild(this.canvas);
 
