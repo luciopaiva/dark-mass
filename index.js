@@ -13,10 +13,10 @@ const CURSOR_RADIUS = 50;
 const QUADRANT_SIZE = 50;
 const RADIUS_OF_INFLUENCE = 50;
 const MAX_ACCELERATION = 0;
-const MAX_VELOCITY = 10;
+const MAX_VELOCITY = 5;
 const BALL_REPULSION_CONSTANT = 10;
 const CURSOR_REPULSION_CONSTANT = 100;
-const FRICTION_FACTOR = .955;  // a value between 0 (max friction) and 1 (no friction)
+const FRICTION_FACTOR = .99;  // a value between 0 (max friction) and 1 (no friction)
 
 class Ball {
     constructor (x, y, kind) {
@@ -53,6 +53,7 @@ class App {
         this.shouldWallsRepel = true;
         this.gravityMode = false;
         this.rockingMode = false;
+        this.waveMode = false;
 
         this.cursor = new Vector();
         this.isCursorActive = false;
@@ -89,6 +90,9 @@ class App {
             case "o":
                 this.rockingMode = !this.rockingMode;
                 break;
+            case "a":
+                this.waveMode = !this.waveMode;
+                break;
         }
     }
 
@@ -116,7 +120,7 @@ class App {
         c.fillStyle = "#000";
         c.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-        const wavePhase = Math.cos(t / 1000);
+        const wavePhase = Math.cos(t / 2000);
 
         // update balls acceleration
         for (let qi = 0; qi < this.quadrants.length; qi++) {
@@ -180,6 +184,12 @@ class App {
 
                 if (this.rockingMode) {
                     this.aux.set(wavePhase * .1, 0);
+                    ball.acc.add(this.aux);
+                }
+
+                if (this.waveMode) {
+                    const magnitude = ball.pos.x;
+                    this.aux.set(wavePhase * 1000 / (magnitude ** 2), 0);
                     ball.acc.add(this.aux);
                 }
 
