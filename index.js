@@ -1,16 +1,17 @@
 
 const TAU = Math.PI * 2;
-const BALLS_COUNT = 200;
+const BALLS_COUNT = 1000;
 const BALL_RADIUS = 5;
 const COLORS = [
     "#d69600",
     "#c90093",
 ];
-const QUADRANT_SIZE = 50;
+const QUADRANT_SIZE = 100;
 const MAX_ACCELERATION = 0;
 const MAX_VELOCITY = 1;
-const REPULSIVE_FORCE_CONSTANT = 20;
-const CONVERGENCE_FACTOR = .98;
+const REPULSIVE_FORCE_CONSTANT = 10;
+const CONVERGENCE_FACTOR = 0.98;
+const SHOULD_DRAW_QUADRANTS = false;
 
 class Ball {
     constructor (x, y, kind) {
@@ -120,15 +121,16 @@ class App {
                 }
 
                 ball.vel.add(ball.acc);
+
                 if (CONVERGENCE_FACTOR) {
                     // simply steal energy from the velocity vector at each step
                     ball.vel.scale(CONVERGENCE_FACTOR);
-                } else {
-                    // impose maximum velocity so system does not go unstable
-                    const velMagnitude = ball.vel.length;
-                    if (velMagnitude > MAX_VELOCITY) {
-                        ball.vel.normalize().scale(MAX_VELOCITY);  // cap velocity
-                    }
+                }
+
+                // impose maximum velocity so system does not go unstable
+                const velMagnitude = ball.vel.length;
+                if (velMagnitude > MAX_VELOCITY) {
+                    ball.vel.normalize().scale(MAX_VELOCITY);  // cap velocity
                 }
             }
         }
@@ -151,18 +153,20 @@ class App {
         }
 
         // draw quadrants
-        c.strokeStyle = "#666";
-        for (let y = 0; y < this.height; y += QUADRANT_SIZE) {
-            c.beginPath();
-            c.moveTo(0, y);
-            c.lineTo(this.width, y);
-            c.stroke();
-        }
-        for (let x = 0; x < this.width; x += QUADRANT_SIZE) {
-            c.beginPath();
-            c.moveTo(x, 0);
-            c.lineTo(x, this.height);
-            c.stroke();
+        if (SHOULD_DRAW_QUADRANTS) {
+            c.strokeStyle = "#666";
+            for (let y = 0; y < this.height; y += QUADRANT_SIZE) {
+                c.beginPath();
+                c.moveTo(0, y);
+                c.lineTo(this.width, y);
+                c.stroke();
+            }
+            for (let x = 0; x < this.width; x += QUADRANT_SIZE) {
+                c.beginPath();
+                c.moveTo(x, 0);
+                c.lineTo(x, this.height);
+                c.stroke();
+            }
         }
 
         // draw balls
