@@ -52,6 +52,7 @@ class App {
         this.shouldDrawQuadrants = false;
         this.shouldWallsRepel = true;
         this.gravityMode = false;
+        this.rockingMode = false;
 
         this.cursor = new Vector();
         this.isCursorActive = false;
@@ -84,6 +85,9 @@ class App {
                 break;
             case "w":
                 this.shouldWallsRepel = !this.shouldWallsRepel;
+                break;
+            case "o":
+                this.rockingMode = !this.rockingMode;
                 break;
         }
     }
@@ -169,14 +173,15 @@ class App {
                     this.accumulateForce(ball, this.cursor, CURSOR_REPULSION_CONSTANT);
                 }
 
-                // gravity
                 if (this.gravityMode) {
                     this.aux.set(0, ball.mass * .05);
                     ball.acc.add(this.aux);
                 }
 
-                this.aux.set(wavePhase * .1, 0);
-                ball.acc.add(this.aux);
+                if (this.rockingMode) {
+                    this.aux.set(wavePhase * .1, 0);
+                    ball.acc.add(this.aux);
+                }
 
                 if (MAX_ACCELERATION) {
                     const accMagnitude = ball.acc.length;
