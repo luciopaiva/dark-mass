@@ -112,6 +112,8 @@ class App {
         c.fillStyle = "#000";
         c.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
+        const wavePhase = Math.cos(t / 1000);
+
         // update balls acceleration
         for (let qi = 0; qi < this.quadrants.length; qi++) {
             const quadrantIndexes = [
@@ -172,6 +174,9 @@ class App {
                     this.aux.set(0, ball.mass * .05);
                     ball.acc.add(this.aux);
                 }
+
+                this.aux.set(wavePhase * .1, 0);
+                ball.acc.add(this.aux);
 
                 if (MAX_ACCELERATION) {
                     const accMagnitude = ball.acc.length;
