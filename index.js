@@ -6,20 +6,19 @@ const COLOR_BY_KIND = [
     "#490097",
 ];
 const BALL_RADIUS_BY_KIND = [5, 6];
-const MASS_BY_KIND = [1, 4];
+const MASS_BY_KIND = [2, 4];
 const SELECTED_COLOR = "#ffd800";
 const SELECTED_NEIGHBOR_COLOR = "#ff5d00";
 const CURSOR_RADIUS = 50;
 const QUADRANT_SIZE = 50;
 const RADIUS_OF_INFLUENCE = 50;
 const MAX_ACCELERATION = 0;
-const MAX_VELOCITY = 1;
+const MAX_VELOCITY = 10;
 const BALL_REPULSION_CONSTANT = 10;
 const CURSOR_REPULSION_CONSTANT = 100;
-const FRICTION_FACTOR = 1;  // a value between 0 (max friction) and 1 (no friction)
-const SHOULD_DRAW_QUADRANTS = true;
+const FRICTION_FACTOR = .955;  // a value between 0 (max friction) and 1 (no friction)
+const SHOULD_DRAW_QUADRANTS = false;
 const SHOULD_WALLS_REPEL = true;
-const SHOULD_SIMULATE_GRAVITY = false;
 
 class Ball {
     constructor (x, y, kind) {
@@ -52,6 +51,8 @@ class App {
         this.quadrants = Array.from(Array(this.QUADRANT_COLS * this.QUADRANT_ROWS), () => new Set());
         this.aux = new Vector();
 
+        this.gravityMode = false;
+
         this.cursor = new Vector();
         this.isCursorActive = false;
 
@@ -74,6 +75,9 @@ class App {
         switch (event.key) {
             case "r":
                 this.selectRandomBall();
+                break;
+            case "g":
+                this.gravityMode = !this.gravityMode;
                 break;
         }
     }
@@ -158,8 +162,8 @@ class App {
                 }
 
                 // gravity
-                if (SHOULD_SIMULATE_GRAVITY) {
-                    this.aux.set(0, ball.mass * .1);
+                if (this.gravityMode) {
+                    this.aux.set(0, ball.mass * .05);
                     ball.acc.add(this.aux);
                 }
 
