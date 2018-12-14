@@ -7,9 +7,10 @@ const COLORS = [
     "#c90093",
 ];
 const QUADRANT_SIZE = 50;
-const MAX_ACCELERATION = 10;
-const MAX_VELOCITY = 10;
-const REPULSIVE_FORCE = 20;
+const MAX_ACCELERATION = 0;
+const MAX_VELOCITY = 1;
+const REPULSIVE_FORCE_CONSTANT = 20;
+const CONVERGENCE_FACTOR = .98;
 
 class Ball {
     constructor (x, y, kind) {
@@ -94,31 +95,40 @@ class App {
                     for (const neighbor of this.quadrants[qi]) {
                         if (neighbor === ball) continue;  // self
 
-                        this.accumulateForce(ball, neighbor.pos, REPULSIVE_FORCE);
+                        this.accumulateForce(ball, neighbor.pos, REPULSIVE_FORCE_CONSTANT);
                     }
                 }
 
                 // repulsion coming from top border
                 this.aux.set(ball.pos.x, 0);
-                this.accumulateForce(ball, this.aux, REPULSIVE_FORCE * 2);
+                this.accumulateForce(ball, this.aux, REPULSIVE_FORCE_CONSTANT);
                 // repulsion coming from right border
                 this.aux.set(this.width, ball.pos.y);
-                this.accumulateForce(ball, this.aux, REPULSIVE_FORCE * 2);
+                this.accumulateForce(ball, this.aux, REPULSIVE_FORCE_CONSTANT);
                 // repulsion coming from bottom border
                 this.aux.set(ball.pos.x, this.height);
-                this.accumulateForce(ball, this.aux, REPULSIVE_FORCE * 2);
+                this.accumulateForce(ball, this.aux, REPULSIVE_FORCE_CONSTANT);
                 // repulsion coming from left border
                 this.aux.set(0, ball.pos.y);
-                this.accumulateForce(ball, this.aux, REPULSIVE_FORCE * 2);
+                this.accumulateForce(ball, this.aux, REPULSIVE_FORCE_CONSTANT);
 
-                const accMagnitude = ball.acc.length;
-                if (accMagnitude > MAX_ACCELERATION) {
-                    ball.acc.normalize().scale(MAX_ACCELERATION);  // cap acceleration
+                if (MAX_ACCELERATION) {
+                    const accMagnitude = ball.acc.length;
+                    if (accMagnitude > MAX_ACCELERATION) {
+                        ball.acc.normalize().scale(MAX_ACCELERATION);  // cap acceleration
+                    }
                 }
+
                 ball.vel.add(ball.acc);
-                const velMagnitude = ball.vel.length;
-                if (velMagnitude > MAX_VELOCITY) {
-                    ball.vel.normalize().scale(MAX_VELOCITY);  // cap velocity
+                if (CONVERGENCE_FACTOR) {
+                    // simply steal energy from the velocity vector at each step
+                    ball.vel.scale(CONVERGENCE_FACTOR);
+                } else {
+                    // impose maximum velocity so system does not go unstable
+                    const velMagnitude = ball.vel.length;
+                    if (velMagnitude > MAX_VELOCITY) {
+                        ball.vel.normalize().scale(MAX_VELOCITY);  // cap velocity
+                    }
                 }
             }
         }
@@ -166,10 +176,10 @@ class App {
         requestAnimationFrame(this.updateFn);
     }
 
-    accumulateForce(ball, neighborPos, repulsiveForce) {
+    accumulateForce(ball, neighborPos, repulsiveForceConstant) {
         Vector.subtract(ball.pos, neighborPos, this.aux);
         const magnitude = Math.max(1, this.aux.length);
-        this.aux.normalize().scale(repulsiveForce / (magnitude ** 2));
+        this.aux.normalize().scale(repulsiveForceConstant / (magnitude ** 2));
         ball.acc.add(this.aux);
     }
 }
