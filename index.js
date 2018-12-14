@@ -1,12 +1,13 @@
 
 const TAU = Math.PI * 2;
 const BALLS_COUNT = 1000;
-const BALL_RADIUS = 5;
-const CURSOR_RADIUS = 50;
-const COLORS = [
-    "#d69600",
-    "#c90093",
+const COLOR_BY_KIND = [
+    "#d68f00",
+    "#6000c9",
 ];
+const BALL_RADIUS_BY_KIND = [5, 6];
+const MASS_BY_KIND = [1, 20];
+const CURSOR_RADIUS = 50;
 const QUADRANT_SIZE = 50;
 const MAX_ACCELERATION = 0;
 const MAX_VELOCITY = 1;
@@ -20,6 +21,8 @@ class Ball {
     constructor (x, y, kind) {
         this.pos = new Vector(x, y);
         this.kind = kind;
+        this.mass = MASS_BY_KIND[kind];
+        this.radius = BALL_RADIUS_BY_KIND[kind];
         this.quadrantIndex = -1;
         this.vel = new Vector();
         this.acc = new Vector();
@@ -37,7 +40,7 @@ class App {
 
         this.balls = Array.from(Array(BALLS_COUNT),
             () => new Ball(Math.random() * this.width, Math.random() * this.height,
-                Math.floor(Math.random() * COLORS.length)));
+                Math.floor(Math.random() * COLOR_BY_KIND.length)));
 
         this.QUADRANT_COLS = Math.ceil(this.width / QUADRANT_SIZE);
         this.QUADRANT_ROWS = Math.ceil(this.height / QUADRANT_SIZE);
@@ -105,7 +108,7 @@ class App {
                     for (const neighbor of this.quadrants[qi]) {
                         if (neighbor === ball) continue;  // self
 
-                        this.accumulateForce(ball, neighbor.pos, BALL_REPULSION_CONSTANT);
+                        this.accumulateForce(ball, neighbor.pos, BALL_REPULSION_CONSTANT * neighbor.mass);
                     }
                 }
 
@@ -158,7 +161,7 @@ class App {
             if (this.isCursorActive) {
                 // do not let balls stay within cursor radius
                 if (this.aux.set(ball.pos).subtract(this.cursor).length < CURSOR_RADIUS) {
-                    this.aux.normalize().scale(CURSOR_RADIUS + BALL_RADIUS).add(this.cursor);
+                    this.aux.normalize().scale(CURSOR_RADIUS + ball.radius).add(this.cursor);
                     ball.pos.set(this.aux);
                 }
             }
@@ -195,9 +198,9 @@ class App {
 
         // draw balls
         for (const ball of this.balls) {
-            c.fillStyle = COLORS[ball.kind];
+            c.fillStyle = COLOR_BY_KIND[ball.kind];
             c.beginPath();
-            c.arc(ball.pos.x, ball.pos.y, BALL_RADIUS, 0, TAU);
+            c.arc(ball.pos.x, ball.pos.y, ball.radius, 0, TAU);
             c.fill();
         }
 
