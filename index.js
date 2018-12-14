@@ -1,6 +1,6 @@
 
 const TAU = Math.PI * 2;
-const BALLS_COUNT = 1000;
+const BALLS_COUNT = 2000;
 const COLOR_BY_KIND = [
     "#986ade",
     "#490097",
@@ -9,14 +9,15 @@ const BALL_RADIUS_BY_KIND = [5, 6];
 const MASS_BY_KIND = [2, 4];
 const SELECTED_COLOR = "#ffd800";
 const SELECTED_NEIGHBOR_COLOR = "#ff5d00";
-const CURSOR_RADIUS = 50;
+const CURSOR_RADIUS = 20;
 const QUADRANT_SIZE = 50;
 const RADIUS_OF_INFLUENCE = 50;
 const MAX_ACCELERATION = 0;
 const MAX_VELOCITY = 5;
 const BALL_REPULSION_CONSTANT = 10;
-const CURSOR_REPULSION_CONSTANT = 100;
+const CURSOR_REPULSION_CONSTANT = 70;
 const FRICTION_FACTOR = .99;  // a value between 0 (max friction) and 1 (no friction)
+const WAVE_TIME_STEP = 0.01;
 
 class Ball {
     constructor (x, y, kind) {
@@ -54,6 +55,9 @@ class App {
         this.gravityMode = false;
         this.rockingMode = false;
         this.waveMode = false;
+        this.isPaused = false;
+
+        this.waveTime = 0;
 
         this.cursor = new Vector();
         this.isCursorActive = false;
@@ -96,6 +100,9 @@ class App {
             case "k":
                 this.killVelocities();
                 break;
+            case " ":
+                this.isPaused = !this.isPaused;
+                break;
         }
     }
 
@@ -125,11 +132,17 @@ class App {
     }
 
     update(t) {
+        if (this.isPaused) {
+            requestAnimationFrame(this.updateFn);
+            return;
+        }
+
         const c = this.ctx;
         c.fillStyle = "#000";
         c.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-        const wavePhase = Math.cos(t / 2000);
+        const wavePhase = Math.cos(this.waveTime);
+        this.waveTime += WAVE_TIME_STEP;
 
         // update balls acceleration
         for (let qi = 0; qi < this.quadrants.length; qi++) {
